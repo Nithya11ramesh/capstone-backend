@@ -1,11 +1,10 @@
-
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import User from '../models/userSchema.js';  // Assuming you need user data in some routes
+import User from '../models/userSchema.js';  // Adjust the path according to your project structure
 
 dotenv.config();
 
-// Authentication  middleware
+// Authentication middleware
 export const authenticate = async (req, res, next) => {
   try {
     // Retrieve the authorization header from the request
@@ -46,19 +45,22 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
-
-
 // Authorization middleware
-export const authorize = (roles) =>  {
-   return async (req, res, next) => {
-  try {
-    const user = await User.findById(req.userId);
-    if (!user || !roles.includes(user.role)) {
-      return res.status(403).json({ message: "Access denied" });
+export const authorize = (roles) => {
+  return async (req, res, next) => {
+    try {
+      // Fetch user from database using userId attached in authenticate middleware
+      const user = await User.findById(req.userId);
+      
+      // Check if the user exists and if their role is allowed
+      if (!user || !roles.includes(user.role)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Proceed to the next middleware or route handler
+      next();
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
     }
-    next();
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+  };
 };

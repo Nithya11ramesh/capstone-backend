@@ -204,4 +204,4 @@ userRouter.post('/reset-password/:token', async (req, res) => {
   }
 });
 
-export default userRouter
+export default userRouter;
