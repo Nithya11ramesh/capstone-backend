@@ -12,8 +12,6 @@ import paymentRouter from './router/paymentRouter.js';
 // import submissionRouter from './router/assignmentSubmissionRouter.js';
 import dotenv from 'dotenv';
 
-
-
 dotenv.config();
 
 const app = express();
@@ -22,7 +20,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: 'https://preeminent-empanada-e5c619.netlify.app/courses',
+    origin: 'https://preeminent-empanada-e5c619.netlify.app',
     Credential: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],

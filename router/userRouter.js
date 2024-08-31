@@ -26,7 +26,7 @@ userRouter.post('/register', async (req, res) => {
 });
 
 // Login user
-userRouter.post('/login', async (req, res) => {
+userRouter.post('/login',async (req, res) => {
   const { email, password } = req.body;
 
   try {
@@ -37,7 +37,7 @@ userRouter.post('/login', async (req, res) => {
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
-    res.json({ token });
+    res.json({token: token });
   } catch (error) {
     res.json({ message: error.message });
     console.error("Error:", error);
