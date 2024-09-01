@@ -11,7 +11,6 @@ import quizRouter from './router/quizRouter.js';
 import paymentRouter from './router/paymentRouter.js';
 // import submissionRouter from './router/assignmentSubmissionRouter.js';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 const app = express();
@@ -38,7 +37,7 @@ app.use('/apiPayments', paymentRouter);
 // app.use('/apiSubmissions', submissionRouter);
 app.use('/apiLessons', lessonRouter);
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 4000;
 
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
