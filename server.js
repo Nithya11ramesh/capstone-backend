@@ -18,13 +18,20 @@ const app = express();
 //middleware
 
 app.use(express.json());
+const allowedOrigins = ['http://localhost:5173']; // Add other origins if needed
 app.use(cors({
-    origin: 'https://localhost:5173',
-    Credential: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: (origin, callback) => {
+    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+  
 
 //routes
 app.use('/apiUsers', userRouter);
@@ -36,6 +43,9 @@ app.use('/apiQuizzes', quizRouter);
 app.use('/apiPayments', paymentRouter);
 // app.use('/apiSubmissions', submissionRouter);
 app.use('/apiLessons', lessonRouter);
+
+
+  
 
 const PORT = process.env.PORT || 4000;
 
