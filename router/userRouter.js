@@ -100,7 +100,7 @@ userRouter.get('/users/:id', async (req, res) => {
 // Get user details
 userRouter.get('/user/details', authenticate, async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.user.userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
