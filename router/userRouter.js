@@ -97,13 +97,36 @@ userRouter.get('/users/:id', async (req, res) => {
 });
 
 
-// Get user details
+// // Get user details
+// userRouter.get('/user/details', authenticate, async (req, res) => {
+//   try {
+//     const user = await User.findById(req.userId);
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found' });
+//     }
+//     res.json({ 
+//       firstName: user.firstName, 
+//       lastName: user.lastName, 
+//       role: user.role, 
+//       userId: user._id, 
+//       enrollStatus: user.enrollStatus, 
+//       email: user.email 
+//     });
+//     console.log("user:", user);
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// });
 userRouter.get('/user/details', authenticate, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId);
+    console.log('User ID from token:', req.userId); // Debugging log
+    if (!req.userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const user = await User.findById(req.userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+
     res.json({ 
       firstName: user.firstName, 
       lastName: user.lastName, 
@@ -112,12 +135,11 @@ userRouter.get('/user/details', authenticate, async (req, res) => {
       enrollStatus: user.enrollStatus, 
       email: user.email 
     });
-    console.log("user:", user);
   } catch (error) {
+    console.error('Error fetching user details:', error); // Debugging log
     res.status(500).json({ message: error.message });
   }
 });
-
 
 // Get instructors
 userRouter.get('/user/instructor', authenticate, async (req, res) => {
