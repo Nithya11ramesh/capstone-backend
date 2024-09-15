@@ -89,7 +89,9 @@ submissionRouter.put('/:submissionId/grade', authenticate, authorize(['admin', '
     if (!mongoose.Types.ObjectId.isValid(submissionId)) {
         return res.status(400).json({ message: 'Invalid submission ID' });
     }
-
+    if (isNaN(grade) || grade < 0 || grade > 10) {
+        return res.status(400).json({ message: 'Invalid grade value' });
+    }
     try {
         const submission = await Submission.findByIdAndUpdate(
             submissionId,
@@ -107,6 +109,8 @@ submissionRouter.put('/:submissionId/grade', authenticate, authorize(['admin', '
         res.status(500).json({ message: 'Server error' });
     }
 });
+
+
 
 // Delete a submission
 submissionRouter.delete('/:submissionId', authenticate, authorize(['admin', 'instructor']), async (req, res) => {

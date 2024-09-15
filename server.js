@@ -10,7 +10,7 @@ import quizRouter from './router/quizRouter.js';
 // import discussionRouter from './router/discussionRouter.js';
 import paymentRouter from './router/paymentRouter.js';
 // import submissionRouter from './router/assignmentSubmissionRouter.js';
-import dotenv from 'dotenv';
+import dotenv from 'dotenv';+
 dotenv.config();
 
 const app = express();
@@ -18,7 +18,7 @@ const app = express();
 //middleware
 
 app.use(express.json());
-const allowedOrigins = ['http://localhost:5173']; // Add other origins if needed
+const allowedOrigins = ['http://localhost:5174']; // Add other origins if needed
 app.use(cors({
   origin: (origin, callback) => {
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
@@ -41,7 +41,7 @@ app.use('/apiAssignments', assignmentRouter);
 app.use('/apiQuizzes', quizRouter);
 // app.use('/apiDiscussion', discussionRouter);
 app.use('/apiPayments', paymentRouter);
-// app.use('/apiSubmissions', submissionRouter);
+//app.use('/apiSubmissions', submissionRouter);
 app.use('/apiLessons', lessonRouter);
 
 

@@ -1,28 +1,26 @@
 import mongoose from 'mongoose';
 
-const submissionSchema = new mongoose.Schema({
-    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    answers: [
-        {
-            questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
-            selectedOption: { type: Number, required: true },
-            score: { type: Number, required: true },
-        },
-    ],
-    score: { type: Number, required: true }
-}, { timestamps: true });
+const questionSchema = new mongoose.Schema({
+    questionText: { type: String, required: true },
+    options: [{ type: String, required: true }],
+    correctAnswer: { type: Number, required: true },
+});
 
 const quizSchema = new mongoose.Schema({
-    title: { type: String, required: true },
     course: { type: mongoose.Schema.Types.ObjectId, ref: 'Course', required: true },
-    questions: [{
-        questionText: { type: String, required: true },
-        options: { type: [String], required: true },
-        correctAnswer: { type: Number, required: true }
+    title: { type: String, required: true },
+    questions: [questionSchema],
+    submissions: [{
+        student: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        answers: [{
+            questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' },
+            selectedOption: { type: Number },
+            score: { type: Number },
+        }],
+        score: { type: Number },
     }],
-    submissions: [submissionSchema]
 }, { timestamps: true });
 
-const Quiz = mongoose.models.Quiz || mongoose.model('Quiz', quizSchema);
+const Quiz = mongoose.model('Quiz', quizSchema);
 
 export default Quiz;

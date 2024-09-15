@@ -23,6 +23,8 @@ const submissionSchema = new mongoose.Schema({
         type: String // Optional comments for feedback
     }
 }, { timestamps: true });
+
+
 const assignmentSchema = new mongoose.Schema({
     course: {
         type: mongoose.Schema.Types.ObjectId,
@@ -41,9 +43,7 @@ const assignmentSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
-    submissions: [submissionSchema]
-
-
+    submissions: [submissionSchema] // Submissions array
 }, { timestamps: true });
 
 const Assignment = mongoose.models.Assignment || mongoose.model('Assignment', assignmentSchema);

@@ -17,21 +17,14 @@ export const authenticate = async (req, res, next) => {
 
     // Extract the token from the authorization header
     const token = authHeader.split(' ')[1];
-
+console.log(token);
     // Verify the token using JWT_SECRET from environment variables
     const verified = jwt.verify(token, process.env.JWT_SECRET);
 
     // Attach the user ID to the request object for use in later middleware or routes
     req.userId = verified.userId;
 
-    // Optionally, fetch and attach user data if needed in routes
-    // const user = await User.findById(req.userId);
-    // if (!user) {
-    //   return res.status(404).json({ message: "User not found" });
-    // }
-    // req.user = user;
-
-    // Proceed to the next middleware or route handler
+   
     next();
   } catch (error) {
     // Handle errors during token verification
@@ -64,3 +57,4 @@ export const authorize = (roles) => {
     }
   };
 };
+

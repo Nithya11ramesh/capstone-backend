@@ -1,207 +1,183 @@
-import express from "express";
-import Course from "../models/courseSchema.js";
-import cloudinary from "../config/cloudinary.js";
-import multer from "multer";
-import { authenticate, authorize } from "../middleware/auth.js";
-import dotenv from "dotenv";
+import express from 'express';
+import Course from '../models/courseSchema.js';
+import cloudinary from '../config/cloudinary.js';
+import multer from 'multer';
+import { authenticate, authorize } from '../middleware/auth.js';
+import dotenv from 'dotenv';
 dotenv.config();
-
 const courseRouter = express.Router();
-
-// Multer config with memory storage
-const storage = multer.memoryStorage();
+// multer config
+const storage = multer.diskStorage({});
 const upload = multer({ storage });
 
 // Create a new course
-courseRouter.post(
-  "/",
-  authenticate,
-  authorize(["instructor", "admin"]),
-  upload.array("media"),
-  async (req, res) => {
-    const { title, description, instructor, price, duration, category } = req.body;
-    try {
-      const mediaUrls = [];
-      for (let file of req.files) {
-        const uploadResult = await cloudinary.uploader.upload(file.buffer, {
-          resource_type: "auto",
-        });
-        mediaUrls.push(uploadResult.secure_url);
-      }
-
-      const course = new Course({
+courseRouter.post('/', authenticate, authorize(['instructor', 'admin']), upload.array("media"), async (req, res) => {
+    const {
         title,
         description,
-        images: mediaUrls,
         instructor,
-        lessons: [], // Initialize lessons as an empty array
         price,
         duration,
         category,
-        user: req.userId,
-      });
+    } = req.body;
+    // console.log('Request body:', req.body);  // Debug: Log request body
+    // console.log('Uploaded files:', req.files);  // Debug: Log uploaded files
+    try {
 
-      await course.save();
+        //   const mediaUrls = await Promise.all(
+        //     req.files.map(async (file) => {
+        //       return new Promise((resolve, reject) => {
+        //         const uploadStream = cloudinary.uploader.upload_stream(
+        //           {
+        //             resource_type: "auto",
+        //           },
+        //           (error, result) => {
+        //             if (error) return reject(error);
+        //             resolve(result.secure_url);
+        //           }
+        //         );
+        //         uploadStream.end(file.buffer);
+        //       });
+        //     })
+        //   );
 
-      res.status(201).json(course);
+        // Upload media files to cloud if any
+        // async function uploadBufferAsync(buffer) {
+        //     return new Promise((resolve, reject) => {
+        //       cloudinary.uploader.upload_stream(
+        //         {
+        //           resource_type: 'raw',
+        //           format: 'jpg',
+        //         },
+        //         function (error, result) {
+        //           if (error) {
+        //             return reject(error);
+        //           }
+        //           resolve(result);
+        //         }
+        //       ).end(buffer);
+        //     });
+        //   }
+        const mediaUrls = [];
+        // console.log(req.files);
+        for (let file of req.files) {
+            let Data = await cloudinary.uploader.upload(file.path);
+            console.log(Data);
+            mediaUrls.push(Data.url)
+        }
+
+        const course = new Course({
+            title,
+            description,
+            images: mediaUrls.filter(url => url.endsWith('.jpg') || url.endsWith('.png')),
+            instructor,
+            lessons: [], // Initialize lessons as empty array
+            price,
+            duration,
+            category,
+            user: req.userId
+        });
+        await course.save();
+
+        // Log the response being sent
+        //const response = { course, message: 'Course Created Successfully...!' };
+
+        // Respond with success message and created course details
+        res.status(201).json(course);
+        console.log("course:", course);
     } catch (error) {
-      console.error("Error creating course:", error);
-      res.status(400).json({ error: "Error creating course" });
+        console.error('Error creating course:', error); // Add detailed logging
+        res.status(400).json({ error: error.message }); //
     }
-  }
-);
+});
 
-// Get all courses with related details
-courseRouter.get("/getCourses", async (req, res) => {
-  try {
-    const courses = await Course.aggregate([
-      {
-        $lookup: {
-          from: "users", // Collection name for users/instructors
-          localField: "instructor", // Field in the courses collection
-          foreignField: "_id", // Field in the users collection
-          as: "instructorDetails"
-        }
-      },
-      {
-        $unwind: "$instructorDetails" // Deconstructs the array, if populated
-      },
-      {
-        $project: {
-          "instructorDetails.firstName": 1,
-          "instructorDetails.lastName": 1,
-          "lessons": 1,
-          "quiz": 1,
-          "assignment": 1,
-          "enrollment": 1
-        }
-      },
-      {
-        $lookup: {
-          from: "lessons", // Collection name for lessons
-          localField: "lessons",
-          foreignField: "_id",
-          as: "lessonsDetails"
-        }
-      },
-      {
-        $lookup: {
-          from: "quizzes", // Collection name for quizzes
-          localField: "quiz",
-          foreignField: "_id",
-          as: "quizDetails"
-        }
-      },
-      {
-        $lookup: {
-          from: "assignments", // Collection name for assignments
-          localField: "assignment",
-          foreignField: "_id",
-          as: "assignmentDetails"
-        }
-      },
-      {
-        $lookup: {
-          from: "enrollments", // Collection name for enrollments
-          localField: "enrollment",
-          foreignField: "_id",
-          as: "enrollmentDetails"
-        }
-      }
-    ]);
-
-    res.json(courses);
-  } catch (error) {
-    res.status(500).json({ error: "Server error" });
-    console.error("Error:", error);
-  }
+// Get all courses
+courseRouter.get('/getCourses', async (req, res) => {
+    try {
+        const courses = await Course.find({}).populate('instructor', 'firstName lastName');
+        res.json(courses);
+    } catch (error) {
+        res.status(500).json({ error: 'server error' });
+        console.error("Error:", error);
+    }
 });
 
 // Get course by ID
-courseRouter.get("/:courseId", authenticate, async (req, res) => {
-  try {
-    const courseId = req.params.courseId;
-    if (!courseId) {
-      return res.status(400).json({ error: "Course ID not provided" });
-    }
+courseRouter.get('/:courseId', authenticate, async (req, res) => {
 
-    const course = await Course.findById(courseId).populate("instructor");
-    if (!course) {
-      return res.status(404).json({ error: "Course not found" });
+    try {
+        const courseId = req.params.courseId;
+        // console.log("courseId:", courseId)
+        if (!courseId) {
+            return res.status(400).json('CourseId not Found');
+        }
+        const course = await Course.findById(courseId).populate('instructor');
+        if (!course) {
+            return res.status(404).json('course not found');
+        }
+        res.json(course);
+    } catch (error) {
+        res.status(500).json('server Error');
+        console.error("Error:", error)
     }
-
-    res.json(course);
-  } catch (error) {
-    console.error("Error fetching course:", error);
-    res.status(500).json({ error: "Server error" });
-  }
 });
 
 // Update course by ID
-courseRouter.put(
-  "/:courseId",
-  authenticate,
-  authorize(["instructor", "admin"]),
-  upload.array("media"),
-  async (req, res) => {
+courseRouter.put('/:courseId', authenticate, authorize(['instructor', 'admin']), upload.array("media"), async (req, res) => {
     try {
-      const { title, description, instructor, price, duration, category } = req.body;
-      const courseId = req.params.courseId;
+        const {
+            title,
+            description,
+            instructor,
+            price,
+            duration,
+            category,
+        } = req.body;
 
-      const course = await Course.findById(courseId).populate("instructor");
-      if (!course) {
-        return res.status(404).json({ error: "Course not found" });
-      }
+        const courseId = req.params.courseId
+        const course = await Course.findById(courseId).populate('instructor');
 
-      // Update fields
-      course.title = title ?? course.title;
-      course.description = description ?? course.description;
-      course.instructor = instructor ?? course.instructor;
-      course.price = price ?? course.price;
-      course.duration = duration ?? course.duration;
-      course.category = category ?? course.category;
-
-      // Handle image update
-      if (req.files && req.files.length > 0) {
-        const mediaUrls = [];
-        for (let file of req.files) {
-          const uploadResult = await cloudinary.uploader.upload(file.buffer, {
-            resource_type: "auto",
-          });
-          mediaUrls.push(uploadResult.secure_url);
+        if (!course) {
+            return res.status(404).json({ message: 'Course not found' });
         }
-        course.images = mediaUrls;
-      }
+        //update field:
+        course.title = title ?? course.title;
+        course.description = description ?? course.description;
+        course.instructor = instructor ?? course.instructor;
+        course.price = price ?? course.price;
+        course.duration = duration ?? course.duration;
+        course.category = category ?? course.category;
+        course.user = req.userID
+        // Handle image update
+        if (req.files && req.files.length > 0) {
+            const mediaUrls = [];
+            for (let file of req.files) {
+                const uploadResult = await cloudinary.uploader.upload(file.path);
+                mediaUrls.push(uploadResult.secure_url);
+            }
+            course.images = mediaUrls;
+        }
+        const updatedCourse = await course.save();
+        // console.log(updatedCourse)
 
-      const updatedCourse = await course.save();
-      res.json(updatedCourse);
+        res.json(updatedCourse);
     } catch (error) {
-      console.error("Error updating course:", error);
-      res.status(500).json({ error: "Server error" });
+        res.status(500).json({ message: 'Server error' });
     }
-  }
-);
-
+});
 // Delete course by ID
-courseRouter.delete(
-  "/:id",
-  authenticate,
-  authorize(["admin"]),
-  async (req, res) => {
+courseRouter.delete('/:id', authenticate, authorize(['admin']), async (req, res) => {
     try {
-      const courseId = req.params.id;
+        const courseId = req.params.id;
 
-      const course = await Course.findByIdAndDelete(courseId);
-      if (!course) {
-        return res.status(404).json({ error: "Course not found" });
-      }
-
-      res.json({ message: "Course deleted successfully", course });
+        const course = await Course.findByIdAndDelete(courseId);
+        if (!course) {
+            return res.status(404).json();
+        }
+        res.json(course);
     } catch (error) {
-      console.error("Error deleting course:", error);
-      res.status(500).json({ error: "Server error" });
+        res.status(500).json(error);
     }
-  }
-);
+});
 
 export default courseRouter;

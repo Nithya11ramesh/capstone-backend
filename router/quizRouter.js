@@ -43,6 +43,8 @@ quizRouter.post('/:courseId', authenticate, authorize(['instructor', 'admin']), 
     }
 });
 
+
+
 // Get all quizzes and quiz count by course ID
 quizRouter.get('/course/:courseId', authenticate, async (req, res) => {
     const { courseId } = req.params;
@@ -61,23 +63,47 @@ quizRouter.get('/course/:courseId', authenticate, async (req, res) => {
 quizRouter.get('/:quizId', authenticate, async (req, res) => {
     try {
         const quizId = req.params.quizId;
-        const userId = req.userId; // Assuming req.user contains logged-in user information
-
-        const quiz = await Quiz.findById(quizId).populate({
-            path: 'submissions',
-            match: { student: userId }, // Filter submissions for the current student
-            populate: { path: 'student', select: 'firstName lastName' },
+    
+        
+                if (!mongoose.Types.ObjectId.isValid(quizId)) {
+                    return res.status(400).json({ message: 'Invalid Quiz ID' });
+                }
+        
+                // Fetch the quiz by ID
+                const quiz = await Quiz.findById(quizId)
+                    .populate({
+                        path: 'submissions',
+                        populate: { path: 'student', select: 'firstName lastName' }
+                    });
+        
+                if (!quiz) {
+                    return res.status(404).json({ message: 'Quiz not found' });
+                }
+        
+                // Respond with the quiz data
+                res.status(200).json({ quiz });
+            } catch (error) {
+                console.error('Error fetching quiz:', error);
+                res.status(500).json({ message: 'Error fetching quiz', error });
+            }
         });
+//         const userId = req.userId; // Assuming req.user contains logged-in user information
 
-        if (!quiz) {
-            return res.status(404).json({ message: 'Quiz not found' });
-        }
+//         const quiz = await Quiz.findById(quizId).populate({
+//             path: 'submissions',
+//             match: { student: userId }, // Filter submissions for the current student
+//             populate: { path: 'student', select: 'firstName lastName' },
+//         });
 
-        res.status(200).json(quiz);
-    } catch (error) {
-        res.status(500).json({ message: 'Error fetching quiz', error });
-    }
-});
+//         if (!quiz) {
+//             return res.status(404).json({ message: 'Quiz not found' });
+//         }
+
+//         res.status(200).json(quiz);
+//     } catch (error) {
+//         res.status(500).json({ message: 'Error fetching quiz', error });
+//     }
+// });
 
 // Update quiz by ID
 quizRouter.put('/:quizId', authenticate, authorize(['instructor', 'admin']), async (req, res) => {

@@ -5,22 +5,6 @@ import { authenticate, authorize } from '../middleware/auth.js'; // import your 
 const enrollmentRouter = express.Router();
 
 // Create a new enrollment
-// enrollmentRouter.post('/:courseId', authenticate, async (req, res) => {
-//     try {
-//           const newEnrollment = new Enrollment({      
-//             ...req.body,
-//             courseId : req.params.courseId,
-//             userId : req.userId
-//         });
-//         const savedEnrollment = await newEnrollment.save();
-//         console.log("Enrollment:", savedEnrollment);
-//         console.log("Enroll:",req.body)
-//         res.status(201).json({savedEnrollment});
-//     } catch (error) {
-//         res.status(400).json({ error: error.message });
-//     }
-// });
-
 enrollmentRouter.post('/:courseId', authenticate, async (req, res) => {
     try {
         // Create a new Enrollment document
