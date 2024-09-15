@@ -20,7 +20,7 @@ const app = express();
 app.use(express.json());
 const allowedOrigins = [
   'http://localhost:5174',
-  'https://66e6a65695415200081c20f1--enchanting-lily-d07d74.netlify.app'
+  'https://enchanting-lily-d07d74.netlify.app'
 ]; // Add other origins if needed
 app.use(cors({
   origin: (origin, callback) => {
