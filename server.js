@@ -18,15 +18,10 @@ const app = express();
 //middleware
 
 app.use(express.json());
-const allowedOrigins = ['http://localhost:5174']; // Add other origins if needed
+const allowedOrigins = ['https://enchanting-lily-d07d74.netlify.app/']; // Add other origins if needed
 app.use(cors({
-  origin: (origin, callback) => {
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: 'https://enchanting-lily-d07d74.netlify.app/',
+    Credential: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
