@@ -39,23 +39,29 @@ dotenv.config();
 // };
 
 
- export const authenticate = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // Bearer token
+export const authenticate = (req, res, next) => {
+  // Extract token from the Authorization header (Bearer token)
+  const token = req.headers['authorization']?.split(' ')[1]; // Safely access the header
 
+  // If no token is found, return a 401 status
   if (!token) {
     return res.status(401).json({ message: 'No token found' });
   }
 
+  // Verify the token using JWT
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    // If there's an error (e.g., invalid or expired token), return 403
     if (err) {
       return res.status(403).json({ message: 'Invalid token' });
     }
 
+    // Attach the decoded user data to the request object
     req.user = user;
+
+    // Proceed to the next middleware or route handler
     next();
   });
 };
-
 // Authorization middleware
 export const authorize = (roles) => {
   return async (req, res, next) => {
