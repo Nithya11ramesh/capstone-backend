@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { authenticate } from '../middleware/auth.js';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+
 dotenv.config();
 const userRouter = express.Router();
 
@@ -36,24 +37,24 @@ userRouter.post('/login', async (req, res) => {
     });
     res.json({ token });
   } catch (error) {
-    res.json({ message: error.message });
+    res.status(500).json({ message: error.message });
     console.error("Error:", error);
   }
 });
 
-//update User
+// Update user details
 userRouter.put('/users/:userId', authenticate, async (req, res) => {
   const userId = req.params.userId;
   const updatedDetails = req.body;
   try {
-      const user = await User.findByIdAndUpdate(userId, updatedDetails, { new: true });
-      if (!user) {
-          return res.status(404).json({ message: 'User not found' });
-      }
-      res.json(user);
+    const user = await User.findByIdAndUpdate(userId, updatedDetails, { new: true });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
   } catch (error) {
-      console.error("Error updating user details:", error);
-      res.status(500).json({ message: 'Server error' });
+    console.error("Error updating user details:", error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
@@ -71,7 +72,6 @@ userRouter.delete('/users/:userId', authenticate, async (req, res) => {
   }
 });
 
-
 // Get all users
 userRouter.get('/users', async (req, res) => {
   try {
@@ -81,7 +81,6 @@ userRouter.get('/users', async (req, res) => {
     res.status(500).send();
   }
 });
-
 
 // Get user by ID
 userRouter.get('/users/:id', async (req, res) => {
@@ -96,76 +95,17 @@ userRouter.get('/users/:id', async (req, res) => {
   }
 });
 
-
-// // Get user details
-// userRouter.get('/user/details', authenticate, async (req, res) => {
-//   try {
-//     const user = await User.findById(req.userId);
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
-//     res.json({ 
-//       firstName: user.firstName, 
-//       lastName: user.lastName, 
-//       role: user.role, 
-//       userId: user._id, 
-//       enrollStatus: user.enrollStatus, 
-//       email: user.email 
-//     });
-//     console.log("user:", user);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
-userRouter.get('/user/details', authenticate, async (req, res) => {
-  try {
-    console.log('User ID from token:', req.userId); // Debugging log
-    if (!req.userId) return res.status(401).json({ message: "Unauthorized" });
-
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json({ 
-      firstName: user.firstName, 
-      lastName: user.lastName, 
-      role: user.role, 
-      userId: user._id, 
-      enrollStatus: user.enrollStatus, 
-      email: user.email 
-    });
-  } catch (error) {
-    console.error('Error fetching user details:', error); // Debugging log
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Get instructors
-userRouter.get('/user/instructor', authenticate, async (req, res) => {
-  try {
-    const instructors = await User.find({ role: 'instructor' });
-    if (!instructors ) {
-      return res.status(404).json({ message: 'No instructors found' });
-    }
-    res.json(instructors);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-
-// Forgot password route
+// Forgot password (Send reset link)
 userRouter.post('/forgot-password', async (req, res) => {
-  
   const { email } = req.body;
+
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ message: 'User not registered' });
+      return res.status(404).json({ message: "User not found" });
     }
-    // Generating token
-    const token = crypto.randomBytes(20).toString('hex');
+
+    const token = crypto.randomBytes(32).toString('hex');
     user.resetToken = token;
     user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
     await user.save();
@@ -183,7 +123,7 @@ userRouter.post('/forgot-password', async (req, res) => {
       from: process.env.DEMO_EMAIL,
       to: email,
       subject: 'Reset Password',
-      text: `Click the following link to reset your password:https://enchanting-lily-d07d74.netlify.app/reset-password/${token}`,
+      text: `Click the following link to reset your password: https://your-frontend-app/reset-password/${token}`,
     };
 
     transporter.sendMail(mailOptions, (error) => {
@@ -198,24 +138,16 @@ userRouter.post('/forgot-password', async (req, res) => {
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
-//logout route
-userRouter.post('/logout', authenticate, async (req, res) => {
-  try {
-    // Here you can handle any server-side logic, such as invalidating the token
-    // For example, remove the token from a list of valid tokens or clear a session
-    res.status(200).json({ message: 'Logout successful' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
 
-// Reset password route
+// Reset password
 userRouter.post('/reset-password/:token', async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
+
   if (password.length < 8) {
     return res.status(400).json({ message: 'Password must be at least 8 characters' });
   }
+
   try {
     const user = await User.findOne({
       resetToken: token,
@@ -236,6 +168,16 @@ userRouter.post('/reset-password/:token', async (req, res) => {
   } catch (error) {
     console.error('Error occurred while resetting password:', error);
     return res.status(500).json({ status: false, message: 'Failed to reset password. Please try again later.' });
+  }
+});
+
+// Logout user
+userRouter.post('/logout', authenticate, async (req, res) => {
+  try {
+    // Handle any server-side logout logic if needed
+    res.status(200).json({ message: 'Logout successful' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
