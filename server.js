@@ -15,23 +15,11 @@ dotenv.config();
 
 const app = express();
 // Define allowed origins for CORS
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://enchanting-lily-d07d74.netlify.app/'
-];
-//middleware
-
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  origin: 'https://lms-knowledgebridge.netlify.app',
+  Credential: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // Enable this if using cookies or authorization headers
 }));
 
 //routes
