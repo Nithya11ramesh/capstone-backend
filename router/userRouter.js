@@ -38,6 +38,7 @@ userRouter.get('/user/details', authenticate, async (req, res) => {
           enrollStatus: user.enrollStatus,
           email: user.email
       });
+      console.log("user:", user)
   } catch (error) {
       res.status(500).json({ message: error.message });
   }
