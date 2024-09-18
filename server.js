@@ -16,7 +16,7 @@ dotenv.config();
 const app = express();
 // Define allowed origins for CORS
 app.use(cors({
-  origin: 'https://lms-knowledgebridge.netlify.app',
+  origin: 'https://enchanting-lily-d07d74.netlify.app',
   Credential: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
