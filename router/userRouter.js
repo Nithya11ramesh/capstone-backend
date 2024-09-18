@@ -22,6 +22,24 @@ userRouter.post('/register', async (req, res) => {
     res.status(400).send(error);
   }
 });
+userRouter.get('/user/details', authenticate, async (req, res) => {
+  try {
+      const user= await User.findById(req.userId);
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+      res.json({
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          userId: user._id,
+          enrollStatus: user.enrollStatus,
+          email: user.email
+      });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+  }
+});
 
 // Login user
 userRouter.post('/login', async (req, res) => {
