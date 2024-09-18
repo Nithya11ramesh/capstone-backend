@@ -22,6 +22,8 @@ userRouter.post('/register', async (req, res) => {
     res.status(400).send(error);
   }
 });
+
+//get all user
 userRouter.get('/user/details', authenticate, async (req, res) => {
   try {
       const user= await User.findById(req.userId);
@@ -38,6 +40,19 @@ userRouter.get('/user/details', authenticate, async (req, res) => {
       });
   } catch (error) {
       res.status(500).json({ message: error.message });
+  }
+});
+
+// Get user role = instructor
+userRouter.get('/user/instructor', authenticate, async (req, res) => {
+  try {
+    const instructors = await User.find({ role: 'instructor' });
+    if (!instructors) {
+      return res.status(404).json({ message: 'instructor not found' });
+    }
+    res.json(instructors);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 
