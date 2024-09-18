@@ -156,7 +156,7 @@ userRouter.post('/forgot-password', async (req, res) => {
       from: process.env.DEMO_EMAIL,
       to: email,
       subject: 'Reset Password',
-      text: `Click the following link to reset your password: https://teal-sorbet-d12214.netlify.app/reset-password/${token}`,
+      text: `Click the following link to reset your password: https://enchanting-lily-d07d74.netlify.app/reset-password/${token}`,
     };
 
     transporter.sendMail(mailOptions, (error) => {
