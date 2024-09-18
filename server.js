@@ -10,22 +10,20 @@ import quizRouter from './router/quizRouter.js';
 // import discussionRouter from './router/discussionRouter.js';
 import paymentRouter from './router/paymentRouter.js';
 // import submissionRouter from './router/assignmentSubmissionRouter.js';
-import dotenv from 'dotenv';+
+import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-
-//middleware
-
-app.use(express.json());
+// Define allowed origins for CORS
 const allowedOrigins = [
   'http://localhost:5173',
   'https://enchanting-lily-d07d74.netlify.app/'
-]; // Add other origins if needed
+];
+//middleware
+
 app.use(cors({
   origin: (origin, callback) => {
-    console.log('Request origin:', origin); // For debugging
-    if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -33,8 +31,8 @@ app.use(cors({
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // Enable this if using cookies or authorization headers
 }));
-  
 
 //routes
 app.use('/apiUsers', userRouter);
