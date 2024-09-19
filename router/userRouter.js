@@ -26,7 +26,7 @@ userRouter.post('/register', async (req, res) => {
 //get all user
 userRouter.get('/user/details', authenticate, async (req, res) => {
   try {
-      const user= await User.findById(req.user._Id);
+      const user= await User.findById(req.userId);
       if (!user) {
           return res.status(404).json({ message: 'User not found' });
       }
