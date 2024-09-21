@@ -53,16 +53,24 @@ enrollmentRouter.get('/:courseId', authenticate, async (req, res) => {
     }
 });
 
+// // Get all enrollments for a user
+// enrollmentRouter.get('/:userId', authenticate, async (req, res) => {
+//     try {
+//         const enrollments = await Enrollment.findById({ user: req.params.userId }).populate('course');
+//         res.status(200).json(enrollments);
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
 // Get all enrollments for a user
-enrollmentRouter.get('/:userId', authenticate, async (req, res) => {
+enrollmentRouter.get('/user/:userId', authenticate, async (req, res) => {
     try {
-        const enrollments = await Enrollment.findById({ user: req.params.userId }).populate('course');
-        res.status(200).json(enrollments);
+        const enrollments = await Enrollment.find({ user: req.params.userId }).populate('course');
+        res.status(200).json({ enrollments });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
-
 // Get a specific enrollment by ID
 enrollmentRouter.get('/:courseId/:enrollmentId', authenticate, async (req, res) => {
     try {
