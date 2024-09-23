@@ -63,14 +63,41 @@ enrollmentRouter.get('/:courseId', authenticate, async (req, res) => {
 //     }
 // });
 // Get all enrollments for a user
+// enrollmentRouter.get('/user/:userId', authenticate, async (req, res) => {
+//     try {
+//         const enrollments = await Enrollment.find({ user: req.params.userId }).populate('course');
+//         res.status(200).json({ enrollments });
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
+
+// Get all enrollments for a user
 enrollmentRouter.get('/user/:userId', authenticate, async (req, res) => {
     try {
-        const enrollments = await Enrollment.find({ user: req.params.userId }).populate('course');
+        const { userId } = req.params; // Extract userId from request parameters
+        
+        // Check if the user exists
+        const userExists = await User.findById(userId);
+        if (!userExists) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Fetch enrollments for the specified user
+        const enrollments = await Enrollment.find({ user: userId }).populate('course');
+        
+        // Check if enrollments are found
+        if (!enrollments.length) {
+            return res.status(404).json({ message: 'No enrollments found for this user.' });
+        }
+
         res.status(200).json({ enrollments });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Error fetching enrollments for user:', error);
+        res.status(500).json({ error: error.message || 'Failed to fetch enrollments.' });
     }
 });
+
 // Get a specific enrollment by ID
 enrollmentRouter.get('/:courseId/:enrollmentId', authenticate, async (req, res) => {
     try {
